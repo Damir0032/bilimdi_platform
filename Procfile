@@ -1,1 +1,1 @@
-web: gunicorn edu_platform.wsgi
+web: gunicorn edu_platform.wsgi --log-file -
