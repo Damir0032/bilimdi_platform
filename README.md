@@ -1,2 +1,1 @@
-# bilimdi_platform
-# bilimdi_platform
+# Bilimdi Platform
