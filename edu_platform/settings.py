@@ -162,4 +162,9 @@ LOGIN_REDIRECT_URL = '/base.html/'   # куда перенаправлять п�
 LOGOUT_REDIRECT_URL = '/login/'  # куда перенаправлять после выхода
 
 import os
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+from dotenv import load_dotenv
+
+load_dotenv()  # .env файлынан айнымалыларды жүктеу
+
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
