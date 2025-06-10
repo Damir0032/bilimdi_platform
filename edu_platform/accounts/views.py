@@ -1,6 +1,13 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from .firebase_config import auth, db
 from django.contrib import messages
+
+import os
+
+def check_key(request):
+    key = os.getenv("OPENAI_API_KEY")
+    return HttpResponse(f"Done: {key[:8]}...")
 
 def register(request):
     if request.method == 'POST':
