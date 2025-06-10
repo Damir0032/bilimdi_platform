@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <title>Тесттер</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #ffffff;
+      color: #000000;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .btn {
+      background-color: #38a169;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #2f855a;
+    }
+    .test-card {
+      border: 2px solid #9ae6b4;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 10px 0;
+      background-color: #ffffff;
+    }
+    .hidden {
+      display: none;
+    }
+    .question {
+      margin: 10px 0;
+    }
+    .result-chart {
+      max-width: 300px;
+      margin: 20px auto;
+    }
+    .lang-select {
+      float: right;
+    }
+    .flag-select {
+            position: relative;
+        }
+
+        .flag-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .flag-dropdown {
+            display: none;
+            position: absolute;
+            top: 30px;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .flag-dropdown button {
+            display: block;
+            width: 100%;
+            padding: 5px 10px;
+            background: none;
+            border: none;
+            text-align: left;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .flag-dropdown button:hover {
+            background-color: #f0f0f0;
+        }
+  </style>
+</head>
+<body>
+
+  <h1>Тесттер</h1>
+  <div class="flag-select">
+    <button class="flag-btn" onclick="toggleDropdown()" id="current-flag">🇰🇿</button>
+    <div class="flag-dropdown" id="flag-dropdown">
+        <button onclick="changeLanguage('kk')">🇰🇿</button>
+        <button onclick="changeLanguage('ru')">🇷🇺</button>
+        <button onclick="changeLanguage('en')">🇬🇧</button>
+    </div>
+</div>
+
+  <button class="btn" onclick="toggleAddTest()">+ Тест қосу</button>
+
+  <div id="addTestSection" class="hidden">
+    <h3>Тест қосу</h3>
+    <input type="text" id="testTitle" placeholder="Тақырып" />
+    <input type="text" id="aiKey" placeholder="ИИ кілті (қаласаңыз)" />
+    <button class="btn" onclick="addTestAI()">ИИ арқылы қосу</button>
+    <button class="btn" onclick="addTestManual()">Қолмен қосу</button>
+    <div id="manualQuestions" class="hidden">
+      <h4>Сұрақтар мен жауаптар</h4>
+      <div id="questionsContainer"></div>
+      <button class="btn" onclick="addManualQuestion()">Сұрақ қосу</button>
+      <button class="btn" onclick="finalizeManualTest()">Сақтау</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <div id="testList"></div>
+
+  <canvas id="resultChart" class="result-chart hidden"></canvas>
+
+  <script>
+    let currentLang = 'kk';
+    const translations = {
+      kk: {
+        addTest: "Тесттер",
+        topic: "Тақырып",
+        addAI: "ИИ арқылы қосу",
+        addManual: "Қолмен қосу",
+        addQuestion: "Сұрақ қосу",
+        save: "Сақтау",
+        answer: "Жауап",
+        correct: "Дұрыс жауап",
+        result: "Нәтиже"
+      },
+      ru: {
+        addTest: "Тесты",
+        topic: "Тема",
+        addAI: "Добавить через ИИ",
+        addManual: "Добавить вручную",
+        addQuestion: "Добавить вопрос",
+        save: "Сохранить",
+        answer: "Ответ",
+        correct: "Правильный ответ",
+        result: "Результат"
+      },
+      en: {
+        addTest: "Tests",
+        topic: "Topic",
+        addAI: "Add with AI",
+        addManual: "Add Manually",
+        addQuestion: "Add Question",
+        save: "Save",
+        answer: "Answer",
+        correct: "Correct Answer",
+        result: "Result"
+      }
+    };
+
+    function changeLanguage(lang) {
+    document.querySelectorAll('[data-key]').forEach(el => {
+        const key = el.getAttribute('data-key');
+
+        if (key === 'welcome') {
+            el.innerHTML = translations[lang][key].replace(/\n/g, '<br>');
+        } else if (el.placeholder !== undefined) {
+            el.placeholder = translations[lang][key];
+        } else {
+            el.textContent = translations[lang][key];
+        }
+    });
+
+    const flagMap = { kk: '🇰🇿', ru: '🇷🇺', en: '🇬🇧' };
+    document.getElementById('current-flag').textContent = flagMap[lang];
+    document.getElementById('flag-dropdown').style.display = 'none';
+}
+
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('flag-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        document.addEventListener('click', function(event) {
+            const flagDropdown = document.getElementById('flag-dropdown');
+            const currentFlag = document.getElementById('current-flag');
+            if (!flagDropdown.contains(event.target) && !currentFlag.contains(event.target)) {
+                flagDropdown.style.display = 'none';
+            }
+        });
+
+
+    function toggleAddTest() {
+      document.getElementById('addTestSection').classList.toggle('hidden');
+    }
+
+    function addTestCard(test) {
+      const card = document.createElement('div');
+      card.className = 'test-card';
+      card.innerHTML = `<h3>${test.title}</h3><button class="btn" onclick='startTest(${JSON.stringify(test.questions)})'>Бастау</button>`;
+      document.getElementById('testList').appendChild(card);
+    }
+
+    function addTestAI() {
+      const title = document.getElementById('testTitle').value;
+      const key = document.getElementById('aiKey').value;
+      if (!title || !key) return alert("Тақырып және ИИ кілт қажет");
+
+      // Уақытша генерация (шынайы ИИ API орнына)
+      const questions = [];
+      for (let i = 1; i <= 10; i++) {
+        questions.push({
+          question: `${title} - ${i}-сұрақ`,
+          options: ["A", "B", "C", "D"],
+          answer: "A"
+        });
+      }
+
+      addTestCard({ title, questions });
+    }
+
+    function addTestManual() {
+      document.getElementById('manualQuestions').classList.remove('hidden');
+      document.getElementById('questionsContainer').innerHTML = '';
+      addManualQuestion(); // алғашқы сұрақ
+    }
+
+    function addManualQuestion() {
+      const container = document.getElementById('questionsContainer');
+      const index = container.children.length + 1;
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.innerHTML = `
+        <input type="text" placeholder="Сұрақ ${index}" class="q-text" />
+        <br>
+        <input type="text" placeholder="A" class="opt" />
+        <input type="text" placeholder="B" class="opt" />
+        <input type="text" placeholder="C" class="opt" />
+        <input type="text" placeholder="D" class="opt" />
+        <input type="text" placeholder="Дұрыс жауап (A/B/C/D)" class="ans" />
+      `;
+      container.appendChild(div);
+    }
+
+    function finalizeManualTest() {
+      const title = document.getElementById('testTitle').value;
+      if (!title) return alert("Тақырыпты енгізіңіз");
+      const container = document.getElementById('questionsContainer');
+      const questions = [];
+
+      for (const q of container.children) {
+        const qText = q.querySelector('.q-text').value;
+        const opts = Array.from(q.querySelectorAll('.opt')).map(o => o.value);
+        const ans = q.querySelector('.ans').value;
+        if (!qText || opts.some(o => !o) || !ans) return alert("Барлық сұрақтар мен жауаптарды толтырыңыз");
+        questions.push({ question: qText, options: opts, answer: ans });
+      }
+
+      addTestCard({ title, questions });
+      document.getElementById('manualQuestions').classList.add('hidden');
+    }
+
+    function startTest(questions) {
+      let correct = 0;
+      let total = questions.length;
+
+      for (const q of questions) {
+        const user = prompt(q.question + "\n" + q.options.join(", "));
+        if (user && user.toUpperCase() === q.answer.toUpperCase()) {
+          correct++;
+        }
+      }
+
+      showResultChart(correct, total);
+    }
+
+    function showResultChart(correct, total) {
+      const ctx = document.getElementById('resultChart');
+      ctx.classList.remove('hidden');
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Дұрыс', 'Қате'],
+          datasets: [{
+            data: [correct, total - correct],
+            backgroundColor: ['#38a169', '#feb2b2']
+          }]
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
