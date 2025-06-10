@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: edu_platform
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn edu_platform.wsgi:application
+      - key: DJANGO_SETTINGS_MODULE
+        value: bilimdi_platforma.settings
+      - key: SECRET_KEY
+        value: ${SECRET_KEY}
+      - key: DEBUG
+        value: "False"
+      - key: YOUTUBE_API_KEY
+        value: ${YOUTUBE_API_KEY}
+      - key: OPENAI_API_KEY
+        value: ${OPENAI_API_KEY}
